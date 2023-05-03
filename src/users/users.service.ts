@@ -11,8 +11,30 @@ export class UsersService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
+  //Dummy users
+
+  public users = [
+    {
+      userName: 'ajin',
+      password: 'admin',
+      email: 'ajin@gmail.com',
+    },
+    {
+      userName: 'sam',
+      password: 'root',
+      email: 'sam@gmail.com',
+    },
+  ];
+
+  getUserByUserName(userName: string) {
+    return this.users.find((user: User) => user.userName === userName);
+  }
+
   create(createUserDto: CreateUserDto): Promise<User> {
     let user: User = new User();
+    user.userName = createUserDto.userName;
+    user.password = createUserDto.password;
+    user.email = createUserDto.email;
     user.patientName = createUserDto.patientName;
     user.doctorName = createUserDto.doctorName;
     user.startTime = createUserDto.startTime;
@@ -31,6 +53,9 @@ export class UsersService {
 
   update(id: number, updateUserDto: UpdateUserDto) {
     let user: User = new User();
+    user.userName = updateUserDto.userName;
+    user.password = updateUserDto.password;
+    user.email = updateUserDto.email;
     user.patientName = updateUserDto.patientName;
     user.doctorName = updateUserDto.doctorName;
     user.startTime = updateUserDto.startTime;

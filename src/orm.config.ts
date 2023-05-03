@@ -9,5 +9,4 @@ export const config: TypeOrmModuleOptions = {
   database: 'doctors-appointment_app_db',
   synchronize: true,
   entities: ['dist/**/*.entity{.ts,.js}'],
-  logging: true,
 };
