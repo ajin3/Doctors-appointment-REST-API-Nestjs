@@ -1,14 +1,23 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { config } from './orm.config';
+import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { DatabaseModule } from './core/database/database.module';
+import { AuthService } from './auth/auth.service';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(config), UsersModule, AuthModule],
+  imports: [
+    UsersModule,
+    AuthModule,
+    DatabaseModule,
+    JwtModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+  ],
+
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AuthService],
 })
 export class AppModule {}

@@ -1,71 +1,23 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { Injectable, Inject } from '@nestjs/common';
+import { User } from '../users/entities/user.entity';
+import { UserDto } from './dto/user.dto';
+import { USER_REPOSITORY } from '../core/constants';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @Inject(USER_REPOSITORY) private readonly userRepository: typeof User,
   ) {}
 
-  //Dummy users
-
-  public users = [
-    {
-      userName: 'ajin',
-      password: 'admin',
-      email: 'ajin@gmail.com',
-    },
-    {
-      userName: 'sam',
-      password: 'root',
-      email: 'sam@gmail.com',
-    },
-  ];
-
-  getUserByUserName(userName: string) {
-    return this.users.find((user: User) => user.userName === userName);
+  async create(userName: UserDto): Promise<User> {
+    return await this.userRepository.create<User>(userName);
   }
 
-  create(createUserDto: CreateUserDto): Promise<User> {
-    let user: User = new User();
-    user.userName = createUserDto.userName;
-    user.password = createUserDto.password;
-    user.email = createUserDto.email;
-    user.patientName = createUserDto.patientName;
-    user.doctorName = createUserDto.doctorName;
-    user.startTime = createUserDto.startTime;
-    user.endTime = createUserDto.endTime;
-
-    return this.userRepository.save(user);
+  async findOneByEmail(email: string): Promise<User> {
+    return await this.userRepository.findOne<User>({ where: { email } });
   }
 
-  findAll(): Promise<User[]> {
-    return this.userRepository.find();
-  }
-
-  findOne(id: number) {
-    return this.userRepository.findOneBy({ id: id });
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    let user: User = new User();
-    user.userName = updateUserDto.userName;
-    user.password = updateUserDto.password;
-    user.email = updateUserDto.email;
-    user.patientName = updateUserDto.patientName;
-    user.doctorName = updateUserDto.doctorName;
-    user.startTime = updateUserDto.startTime;
-    user.endTime = updateUserDto.endTime;
-    user.id = id;
-
-    return this.userRepository.save(user);
-  }
-
-  remove(id: number) {
-    return this.userRepository.delete(id);
+  async findOneById(id: number): Promise<User> {
+    return await this.userRepository.findOne<User>({ where: { id } });
   }
 }
