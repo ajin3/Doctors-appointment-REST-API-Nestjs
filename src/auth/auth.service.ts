@@ -5,79 +5,62 @@ import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly userService: UsersService,
-        private readonly jwtService: JwtService,
-    ) { }
+  constructor(
+    private readonly userService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-    async validateUser(username: string, pass: string) {
-        // find if user exist with this email
-        const user = await this.userService.findOneByEmail(username);
-        if (!user) {
-            return null;
-        }
-
-        // find if user password match
-        const match = await this.comparePassword(pass, user.password);
-        if (!match) {
-            return null;
-        }
-
-        const { password, ...result } = user['dataValues'];
-        return result;
+  async validateUser(username: string, pass: string) {
+    // find if user exist with this email
+    const user = await this.userService.findOneByEmail(username);
+    if (!user) {
+      return null;
     }
 
-    public async login(user) {
-        const token = await this.generateToken(user);
-        return { user, token };
+    // find if user password match
+    const match = await this.comparePassword(pass, user.password);
+    if (!match) {
+      return null;
     }
 
-    public async create(user) {
-        // hash the password
-        const pass = await this.hashPassword(user.password);
+    const { password, ...result } = user['dataValues'];
+    return result;
+  }
 
-        // create the user
-        const newUser = await this.userService.create({ ...user, password: pass });
+  public async login(user) {
+    const token = await this.generateToken(user);
+    return { user, token };
+  }
 
-        const { password, ...result } = newUser['dataValues'];
+  public async create(user) {
+    // hash the password
+    const pass = await this.hashPassword(user.password);
 
-        // generate token
-        const token = await this.generateToken(result);
+    // create the user
+    const newUser = await this.userService.create({ ...user, password: pass });
 
-        // return the user and the token
-        return { user: result, token };
-    }
+    const { password, ...result } = newUser['dataValues'];
 
-    private async generateToken(user) {
-        const token = await this.jwtService.signAsync(user);
-        return token;
-    }
+    // generate token
+    const token = await this.generateToken(result);
 
-    // private async hashPassword(password) {
-    //     const hash = await bcrypt.hash(password);
-    //     return hash;
-    // }
+    // return the user and the token
+    return { user: result, token };
+  }
 
-    private async hashPassword(password) {
-        const saltOrRounds = 3;
-        const hash = await bcrypt.hash(password, saltOrRounds);
-        return hash;
-      }
+  private async generateToken(user) {
+    const token = await this.jwtService.signAsync(user);
+    return token;
+  }
 
-    private async comparePassword(enteredPassword, dbPassword) {
-        const match = await bcrypt.compare(enteredPassword, dbPassword);
-        return match;
-    }
+  private async hashPassword(password) {
+    const saltOrRounds = 3;
+    const hash = await bcrypt.hash(password, saltOrRounds);
+    return hash;
+  }
+
+  private async comparePassword(enteredPassword, dbPassword) {
+    const match = await bcrypt.compare(enteredPassword, dbPassword);
+    return match;
+  }
 }
-
-// import { Injectable } from '@nestjs/common';
-// import { JwtService } from '@nestjs/jwt';
-// import { User } from 'src/users/entities/user.entity';
-
-// @Injectable()
-// export class AuthService {
-//   constructor(private readonly jwtService: JwtService) {}
-//   generateToken(payload: User): string {
-//     return this.jwtService.sign(payload);
-//   }
-// }
