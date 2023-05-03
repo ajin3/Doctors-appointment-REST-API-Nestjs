@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './core/database/database.module';
 import { AuthService } from './auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
+import { UserDataModule } from './modules/user-data/user-data.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { JwtModule } from '@nestjs/jwt';
     DatabaseModule,
     JwtModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    UserDataModule,
   ],
 
   controllers: [AppController],
