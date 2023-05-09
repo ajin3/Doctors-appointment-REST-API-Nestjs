@@ -1,66 +1,43 @@
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
+import { compare } from 'bcrypt';
+import { Patient } from '../patients/patient.model';
+import { PatientsService } from '../patients/patient.service';
+import { PatientRepository } from '../patients/patient.repository';
+import { PatientSignupDto } from './dto/patient.signup.login.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UsersService,
+    private readonly patientsService: PatientsService,
     private readonly jwtService: JwtService,
+    private readonly patientRepository: PatientRepository,
   ) {}
 
-  async validateUser(username: string, pass: string) {
-    // find if user exist with this email
-    const user = await this.userService.findOneByEmail(username);
+  async signup(patientSignupDto: PatientSignupDto): Promise<Patient> {
+    return this.patientRepository.createPatient(patientSignupDto);
+  }
+
+  async validateUser(email: string, password: string): Promise<Patient | null> {
+    const user = await this.patientsService.findByEmail(email);
     if (!user) {
       return null;
     }
-
-    // find if user password match
-    const match = await this.comparePassword(pass, user.password);
-    if (!match) {
+    const isMatch = await compare(password, user.password);
+    if (!isMatch) {
       return null;
     }
-
-    const { password, ...result } = user['dataValues'];
-    return result;
+    return user;
   }
 
-  public async login(user) {
-    const token = await this.generateToken(user);
-    return { user, token };
+  async validateUserById(id: number): Promise<Patient | null> {
+    return this.patientsService.findOne(id);
   }
 
-  public async create(user) {
-    // hash the password
-    const pass = await this.hashPassword(user.password);
-
-    // create the user
-    const newUser = await this.userService.create({ ...user, password: pass });
-
-    const { password, ...result } = newUser['dataValues'];
-
-    // generate token
-    const token = await this.generateToken(result);
-
-    // return the user and the token
-    return { user: result, token };
-  }
-
-  private async generateToken(user) {
-    const token = await this.jwtService.signAsync(user);
-    return token;
-  }
-
-  private async hashPassword(password) {
-    const saltOrRounds = 3;
-    const hash = await bcrypt.hash(password, saltOrRounds);
-    return hash;
-  }
-
-  private async comparePassword(enteredPassword, dbPassword) {
-    const match = await bcrypt.compare(enteredPassword, dbPassword);
-    return match;
+  async login(user: Patient): Promise<{ access_token: string }> {
+    const payload = { sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }
